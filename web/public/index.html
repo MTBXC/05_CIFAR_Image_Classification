@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIFAR-10 Base_CNN Classifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+            box-shadow: 0 4px 15px rgba(252, 182, 159, 0.3);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 20px rgba(252, 182, 159, 0.4);
+        }
+
+        .status {
+            font-size: 18px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .image-card.selected {
+            border-color: #4facfe;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .image-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background: #f8f9fa;
+        }
+
+        .image-info {
+            padding: 15px;
+            text-align: center;
+        }
+
+        .image-info h3 {
+            font-size: 14px;
+            color: #495057;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .image-info p {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .result-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .result-panel.show {
+            display: block;
+        }
+
+        .result-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .prediction-result {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .prediction-result h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .confidence {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .confidence.high {
+            color: #28a745;
+        }
+
+        .confidence.medium {
+            color: #ffc107;
+        }
+
+        .confidence.low {
+            color: #dc3545;
+        }
+
+        .correctness {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .correctness.correct {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .correctness.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .all-predictions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .prediction-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #4facfe;
+        }
+
+        .prediction-item.top {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-left-color: #fff;
+        }
+
+        .prediction-item h4 {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .prediction-item .probability {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #dc3545;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .images-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 CIFAR-10 Base_CNN Classifier</h1>
+            <p>Select an image and let our AI model predict its class</p>
+        </div>
+
+        <div class="controls">
+            <div class="status" id="status">Select an image to classify</div>
+            <div>
+                <button class="btn btn-secondary" id="updateBtn" onclick="loadRandomImages()">
+                    🔄 Update Images
+                </button>
+                <button class="btn" id="classifyBtn" onclick="classifySelectedImage()" disabled>
+                    🧠 Classify
+                </button>
+            </div>
+        </div>
+
+        <div class="images-grid" id="imagesGrid">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading images...</p>
+            </div>
+        </div>
+
+        <div class="result-panel" id="resultPanel">
+            <div class="result-content">
+                <div class="prediction-result" id="predictionResult">
+                    <!-- Prediction results will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentImages = [];
+        let selectedImageIndex = null;
+
+        // Load random images on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRandomImages();
+        });
+
+        async function loadRandomImages() {
+            const imagesGrid = document.getElementById('imagesGrid');
+            const updateBtn = document.getElementById('updateBtn');
+            const classifyBtn = document.getElementById('classifyBtn');
+            const status = document.getElementById('status');
+            const resultPanel = document.getElementById('resultPanel');
+
+            // Show loading state
+            imagesGrid.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading new images...</p>
+                </div>
+            `;
+            
+            updateBtn.disabled = true;
+            classifyBtn.disabled = true;
+            resultPanel.classList.remove('show');
+            selectedImageIndex = null;
+
+            try {
+                const response = await fetch('/api/images');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                currentImages = data.images;
+                
+                displayImages(currentImages);
+                status.textContent = `Loaded ${currentImages.length} images. Select one to classify.`;
+                
+            } catch (error) {
+                console.error('Error loading images:', error);
+                imagesGrid.innerHTML = `
+                    <div class="error">
+                        <strong>Error loading images:</strong> ${error.message}
+                    </div>
+                `;
+                status.textContent = 'Error loading images';
+            } finally {
+                updateBtn.disabled = false;
+            }
+        }
+
+        function displayImages(images) {
+            const imagesGrid = document.getElementById('imagesGrid');
+            
+            imagesGrid.innerHTML = images.map((image, index) => `
+                <div class="image-card" onclick="selectImage(${index})" data-index="${index}">
+                    <img src="${image.image_base64}" alt="CIFAR-10 Image ${image.index}">
+                    <div class="image-info">
+                        <h3>Image #${image.index}</h3>
+                        <p>True: ${image.true_class_name}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectImage(index) {
+            // Remove previous selection
+            document.querySelectorAll('.image-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to clicked card
+            const selectedCard = document.querySelector(`[data-index="${index}"]`);
+            selectedCard.classList.add('selected');
+            
+            selectedImageIndex = index;
+            document.getElementById('classifyBtn').disabled = false;
+            document.getElementById('status').textContent = `Selected image #${currentImages[index].index}. Click Classify to predict.`;
+        }
+
+        async function classifySelectedImage() {
+            if (selectedImageIndex === null) {
+                alert('Please select an image first!');
+                return;
+            }
+
+            const classifyBtn = document.getElementById('classifyBtn');
+            const status = document.getElementById('status');
+            const resultPanel = document.getElementById('resultPanel');
+            const predictionResult = document.getElementById('predictionResult');
+
+            // Show loading state
+            classifyBtn.disabled = true;
+            classifyBtn.textContent = '🧠 Classifying...';
+            status.textContent = 'Classifying image...';
+
+            try {
+                const imageIndex = currentImages[selectedImageIndex].index;
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        image_index: imageIndex
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayPredictionResult(result);
+                
+            } catch (error) {
+                console.error('Error classifying image:', error);
+                predictionResult.innerHTML = `
+                    <div class="error">
+                        <strong>Error classifying image:</strong> ${error.message}
+                    </div>
+                `;
+            } finally {
+                classifyBtn.disabled = false;
+                classifyBtn.textContent = '🧠 Classify';
+                resultPanel.classList.add('show');
+            }
+        }
+
+        function displayPredictionResult(result) {
+            const predictionResult = document.getElementById('predictionResult');
+            const status = document.getElementById('status');
+            
+            // Determine confidence level
+            let confidenceClass = 'low';
+            if (result.confidence > 0.7) confidenceClass = 'high';
+            else if (result.confidence > 0.4) confidenceClass = 'medium';
+            
+            // Create prediction display
+            const allPredictionsHTML = result.all_predictions.map((pred, index) => `
+                <div class="prediction-item ${index === 0 ? 'top' : ''}">
+                    <h4>${pred.class_name}</h4>
+                    <div class="probability">${(pred.probability * 100).toFixed(1)}%</div>
+                </div>
+            `).join('');
+
+            predictionResult.innerHTML = `
+                <h2>🎯 Prediction: ${result.predicted_class}</h2>
+                <div class="confidence ${confidenceClass}">
+                    Confidence: ${(result.confidence * 100).toFixed(1)}%
+                </div>
+                <div class="correctness ${result.is_correct ? 'correct' : 'incorrect'}">
+                    ${result.is_correct ? '✅ Correct!' : '❌ Incorrect'} 
+                    (True class: ${result.true_class})
+                </div>
+                <h3>All Predictions:</h3>
+                <div class="all-predictions">
+                    ${allPredictionsHTML}
+                </div>
+            `;
+            
+            status.textContent = `Predicted: ${result.predicted_class} (${(result.confidence * 100).toFixed(1)}% confidence)`;
+        }
+    </script>
+</body>
+</html>
