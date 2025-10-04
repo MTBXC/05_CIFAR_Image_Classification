@@ -1,0 +1,42 @@
+# AWS Configuration
+aws_region = "eu-north-1"
+project_name = "cifar-webapi"
+environment = "prod"
+
+# VPC Configuration
+vpc_cidr = "10.1.0.0/16"
+public_subnet_1_cidr = "10.1.1.0/24"
+public_subnet_2_cidr = "10.1.2.0/24"
+private_subnet_1_cidr = "10.1.10.0/24"
+private_subnet_2_cidr = "10.1.20.0/24"
+
+# ECS Configuration
+task_cpu = 1024
+task_memory = 2048
+desired_count = 2
+container_port = 8000
+
+# Docker Configuration
+# Leave empty initially - will be filled after building image
+docker_image_uri = ""
+
+# S3 Models Bucket (from SageMaker deployment)
+models_bucket = "cifar-sagemaker-models-itwm0v09"
+
+# Auto Scaling
+enable_autoscaling = true
+min_capacity = 1
+max_capacity = 10
+target_cpu_utilization = 70
+target_memory_utilization = 80
+
+
+
+
+
+
+
+
+
+
+

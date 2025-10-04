@@ -1,0 +1,47 @@
+# Example Terraform variables for SageMaker infrastructure
+# Copy this file to terraform.tfvars and update the values
+
+# AWS Configuration
+aws_region = "eu-north-1"
+environment = "dev"
+
+# VPC Configuration
+sagemaker_vpc_cidr = "10.1.0.0/16"
+sagemaker_public_subnet_1_cidr = "10.1.1.0/24"
+sagemaker_public_subnet_2_cidr = "10.1.2.0/24"
+sagemaker_private_subnet_1_cidr = "10.1.10.0/24"
+sagemaker_private_subnet_2_cidr = "10.1.20.0/24"
+
+# SageMaker Configuration
+notebook_instance_type = "ml.t3.medium"
+notebook_volume_size = 20
+
+# MLFlow Integration
+# Update this with your actual MLFlow server IP from the minimal deployment
+mlflow_tracking_uri = "http://YOUR_MLFLOW_SERVER_IP:5000"
+
+# Training Configuration
+training_instance_type = "ml.m5.large"
+training_instance_count = 1
+
+# Model Configuration
+model_name = "cifar10-cnn"
+model_version = "1.0"
+
+# Additional Tags
+additional_tags = {
+  Owner = "your-name"
+  Project = "cifar-classification"
+}
+
+
+
+
+
+
+
+
+
+
+
+

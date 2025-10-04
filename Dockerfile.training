@@ -1,0 +1,73 @@
+# Dockerfile for SageMaker training environment
+FROM python:3.12-slim
+
+# Set working directory
+WORKDIR /opt/ml/code
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/opt/ml/code \
+    AWS_DEFAULT_REGION=us-east-1 \
+    SAGEMAKER_PROGRAM=train.py \
+    SAGEMAKER_SUBMIT_DIRECTORY=/opt/ml/code \
+    SAGEMAKER_CONTAINER_LOG_LEVEL=20
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    wget \
+    curl \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir \
+    tensorflow==2.20.0 \
+    numpy==1.26.3 \
+    pillow==10.0.0 \
+    scikit-learn==1.3.0 \
+    matplotlib==3.7.2 \
+    seaborn==0.12.2 \
+    mlflow==2.15.0 \
+    boto3==1.34.0 \
+    sagemaker==2.200.0 \
+    awscli==1.32.0
+
+# Create SageMaker directories
+RUN mkdir -p /opt/ml/input/data/training \
+    /opt/ml/input/data/validation \
+    /opt/ml/model \
+    /opt/ml/output \
+    /opt/ml/code
+
+# Copy training code
+COPY src/ /opt/ml/code/src/
+COPY infra/aws/sagemaker/train.py /opt/ml/code/
+COPY requirements.txt /opt/ml/code/
+
+# Install project requirements
+RUN pip install --no-cache-dir -r /opt/ml/code/requirements.txt
+
+# Create training script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+echo "Starting SageMaker training..."\n\
+echo "Training data: $SM_CHANNEL_TRAINING"\n\
+echo "Validation data: $SM_CHANNEL_VALIDATION"\n\
+echo "Model output: $SM_MODEL_DIR"\n\
+echo "Output data: $SM_OUTPUT_DATA_DIR"\n\
+\n\
+# Run training script\n\
+python /opt/ml/code/train.py' > /opt/ml/code/entrypoint.sh && \
+    chmod +x /opt/ml/code/entrypoint.sh
+
+# Set entrypoint
+ENTRYPOINT ["/opt/ml/code/entrypoint.sh"]
