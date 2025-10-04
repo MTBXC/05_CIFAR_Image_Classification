@@ -118,3 +118,47 @@ yarn-error.log*
 # Backup files
 *.bak
 *.backup
+
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/terraform.tfstate.*.backup
+**/.terraformrc
+**/terraform.rc
+**/terraform.tfvars
+!**/terraform.tfvars.example
+**/.terraform.tfstate.lock.info
+**/crash.log
+**/crash.*.log
+**/override.tf
+**/override.tf.json
+**/*_override.tf
+**/*_override.tf.json
+
+# AWS Credentials and sensitive files (NEVER commit these!)
+**/*credentials*
+**/*credential*
+**/*secret*
+**/*key.pem
+**/*keypair*
+**/*accessKeys*
+**/*AccessKeys*
+KAGGLE_CREDENTIALS.txt
+*CREDENTIALS*.txt
+*SECRET*.txt
+*.pem
+
+# Terraform providers (large binaries)
+Providers/
+
+# MLflow artifacts (can be large)
+mlflow_artifacts/
+
+# Build logs
+build*.log
+
+# Temporary test files
+ion01_Own_Projects05_CIFAR_Image_Classification
+t-Path .github
